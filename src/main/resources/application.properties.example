@@ -1,0 +1,3 @@
+spring.datasource.url=jdbc:mysql://mariadb/delivery?useLegacyDatetimeCode=false&serverTimezone=UTC
+spring.datasource.username=
+spring.datasource.password=
