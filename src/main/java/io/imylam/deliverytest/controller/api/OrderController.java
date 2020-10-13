@@ -4,16 +4,18 @@ import io.imylam.deliverytest.controller.request.PlaceOrderRequest;
 import io.imylam.deliverytest.controller.request.TakeOrdersRequest;
 import io.imylam.deliverytest.dto.model.OrderDto;
 import io.imylam.deliverytest.dto.model.TakeOrderDto;
-import io.imylam.deliverytest.dto.response.Response;
 import io.imylam.deliverytest.service.OrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
+@Validated
 public class OrderController {
 
     @Autowired
@@ -25,14 +27,15 @@ public class OrderController {
     }
 
     @PatchMapping("/orders/{id}")
-    public TakeOrderDto patchTakeOrder(@PathVariable String id, @RequestBody @Valid TakeOrdersRequest req) {
+    public TakeOrderDto patchTakeOrder(
+            @PathVariable @Min(1) String id, @RequestBody @Valid TakeOrdersRequest req) {
         return takeOrder(Integer.parseInt(id));
     }
 
     @GetMapping("/orders")
     public List<OrderDto> getOrdersList(
-            @RequestParam(value = "limit", required = true) int limit,
-            @RequestParam(value = "page", required = true) int page) {
+            @RequestParam(value = "limit", required = true) @Min(1) int limit,
+            @RequestParam(value = "page", required = true) @Min(1) int page) throws Exception {
         return listOrders(limit, page);
     }
 
@@ -50,4 +53,10 @@ public class OrderController {
     private List<OrderDto> listOrders(int limit, int page) {
         return orderService.listOrder(limit, page);
     }
+
+//    @ExceptionHandler(ConstraintViolationException.class)
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+//    ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
+//        return new ResponseEntity<>("not valid due to validation error: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+//    }
 }
