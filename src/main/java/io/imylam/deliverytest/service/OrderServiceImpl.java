@@ -1,15 +1,9 @@
 package io.imylam.deliverytest.service;
 
-import com.google.maps.DistanceMatrixApi;
-import com.google.maps.DistanceMatrixApiRequest;
-import com.google.maps.GeoApiContext;
-import com.google.maps.internal.StringJoin;
-import com.google.maps.model.DistanceMatrix;
-import com.google.maps.model.DistanceMatrixElementStatus;
-import io.imylam.deliverytest.config.ApiConfig;
 import io.imylam.deliverytest.dto.model.OrderDto;
 import io.imylam.deliverytest.model.Order;
 import io.imylam.deliverytest.repository.OrderRepository;
+import io.imylam.deliverytest.thirdpartyservice.GoogleMapClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +14,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     final private OrderRepository orderRepository;
-    final private ApiConfig apiConfig;
+    final private GoogleMapClient googleMapClient;
 
     @Override
     public OrderDto placeOrder(String[] origin, String[] destination) {
-        DistanceMatrix dMatrix = getDistanceFromGoogleMapApi(origin, destination);
-        if (dMatrix == null || dMatrix.rows[0].elements[0].status != DistanceMatrixElementStatus.OK) {
+        long distance;
+        try {
+            distance = googleMapClient.getDistance(origin, destination);
+        } catch (Exception e) {
             return null;
         }
-        long distance = dMatrix.rows[0].elements[0].distance.inMeters;
 
         Order order = orderRepository.save(
                 new Order().setDistance(distance).setStatus(Order.STATUS_UNASSIGNED)
@@ -60,27 +55,5 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderDtos;
-    }
-
-    private DistanceMatrix getDistanceFromGoogleMapApi(String[] origin, String[] destination) {
-
-        String[] origins = new String[1];
-        String destinations[] = new String[1];
-        origins[0] = StringJoin.join(',', origin);
-        destinations[0] = StringJoin.join(',', destination);
-
-        GeoApiContext context = new GeoApiContext.Builder()
-                .apiKey(apiConfig.getGoogleKey())
-                .build();
-        DistanceMatrixApiRequest req =  DistanceMatrixApi.getDistanceMatrix(
-                context, origins, destinations);
-        try {
-            DistanceMatrix distanceMatrix = req.await();
-            return distanceMatrix;
-
-        } catch (Exception e) {
-            System.out.println(e.toString());
-            return null;
-        }
     }
 }
