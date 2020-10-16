@@ -10,18 +10,17 @@ import io.imylam.deliverytest.config.ApiConfig;
 import io.imylam.deliverytest.dto.model.OrderDto;
 import io.imylam.deliverytest.model.Order;
 import io.imylam.deliverytest.repository.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-    @Autowired
-    private OrderRepository orderRepository;
-    @Autowired
-    private ApiConfig apiConfig;
+    final private OrderRepository orderRepository;
+    final private ApiConfig apiConfig;
 
     @Override
     public OrderDto placeOrder(String[] origin, String[] destination) {
